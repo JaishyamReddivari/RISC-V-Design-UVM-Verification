@@ -1,4 +1,3 @@
-module branch_unit
     import riscv_pkg::*;
 (
     input  xlen_t   rs1,
