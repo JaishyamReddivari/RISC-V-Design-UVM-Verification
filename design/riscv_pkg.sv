@@ -86,20 +86,25 @@ package riscv_pkg;
         reg_addr_t rs1;
         reg_addr_t rs2;
         reg_addr_t rd;
+        xlen_t instr;
         control_t ctrl;
     } id_ex_t;
 
     typedef struct packed {
+        xlen_t pc;
         xlen_t alu_result;
         xlen_t rs2_data;
         reg_addr_t rd;
+        xlen_t instr;
         control_t ctrl;
     } ex_mem_t;
 
     typedef struct packed {
+        xlen_t pc;
         xlen_t alu_result;
         xlen_t mem_data;
         reg_addr_t rd;
+        xlen_t instr;
         control_t ctrl;
     } mem_wb_t;
 
