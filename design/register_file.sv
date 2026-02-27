@@ -21,15 +21,23 @@ module register_file
     // -------------------------
     // Write logic
     // -------------------------
-    always_ff @(posedge clk) begin
-        if (we && (rd_addr != 5'd0))
-            regs[rd_addr] <= rd_data;
-    end
 
+  always_ff @(posedge clk or negedge rst_n) begin
+    if(!rst_n) begin
+      for(int i=0; i<REG_COUNT; i++)
+        regs[i] <= '0;
+    end else if (we && (rd_addr != 5'd0)) begin
+      regs[rd_addr] <= rd_data;
+    end
+  end
+  
     // -------------------------
     // Combinational read
     // -------------------------
-    assign rs1_data = (rs1_addr == 5'd0) ? '0 : regs[rs1_addr];
-    assign rs2_data = (rs2_addr == 5'd0) ? '0 : regs[rs2_addr];
+  assign rs1_data = (rs1_addr == 5'd0) ? '0 : 
+       		 	 	(we && rd_addr != 5'd0 && rd_addr == rs1_addr) ? 
+    				rd_data : regs[rs1_addr];
+  assign rs2_data = (rs2_addr == 5'd0) ? '0 : 
+    				(we && rd_addr != 5'd0 && rd_addr == rs2_addr) ? 						rd_data : regs[rs2_addr];
 
 endmodule
