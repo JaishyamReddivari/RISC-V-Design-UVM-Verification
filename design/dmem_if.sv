@@ -1,4 +1,5 @@
-interface dmem_if #(parameter XLEN = 32);
+interface dmem_if #(parameter XLEN = 32)
+  (input logic clk);
 
     logic              valid;
     logic              write;
