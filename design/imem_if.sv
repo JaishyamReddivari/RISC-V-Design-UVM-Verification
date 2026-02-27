@@ -1,5 +1,5 @@
-// imem_if.sv
-interface imem_if #(parameter XLEN = 32);
+interface imem_if #(parameter XLEN = 32)
+  (input logic clk);
 
     logic              req;
     logic [XLEN-1:0]   addr;
