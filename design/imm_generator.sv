@@ -7,10 +7,11 @@ module imm_generator
 
     opcode_e opcode;
 
-    assign opcode = instr[6:0];
+    assign opcode = opcode_e'(instr[6:0]);
 
     always_comb begin
-        unique case (opcode)
+      unique case (opcode)
+      //unique case(instr[6:0])
 
             OPCODE_OP_IMM,
             OPCODE_LOAD,
