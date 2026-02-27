@@ -248,6 +248,7 @@ Notable fixes: Riviera-PRO `!binsof` compound expressions mishandled → replace
 ## Regression
 
 ### `regress.py` — Multi-seed regression runner
+> **Note:** The regression script was written but **not executed** in this project due to lack of access to a local simulator license. All simulation results (683 passed, 96% coverage) were obtained by running individual seeds manually through Riviera-PRO via EDA Playground / cloud instances. The script is included to demonstrate regression methodology and is ready to run in any environment with a UVM-capable simulator.
 
 ```bash
 python3 regress.py                        # 10 random seeds
