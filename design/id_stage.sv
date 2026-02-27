@@ -85,8 +85,13 @@ module id_stage
 
     always_comb begin
         ctrl_final = ctrl_main;
+      if(opcode == OPCODE_OP || opcode == OPCODE_OP_IMM) begin
         ctrl_final.alu_op = alu_op;
+      end
+      
+      if(opcode == OPCODE_BRANCH) begin
         ctrl_final.branch_type = branch_type;
+      end
     end
 
     // -----------------------------
@@ -105,6 +110,7 @@ module id_stage
             id_ex_out.rs1       <= rs1;
             id_ex_out.rs2       <= rs2;
             id_ex_out.rd        <= rd;
+            id_ex_out.instr <= if_id_in.instr;
             id_ex_out.ctrl      <= ctrl_final;
         end
     end
