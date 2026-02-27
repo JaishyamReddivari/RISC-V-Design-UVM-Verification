@@ -5,7 +5,8 @@ module riscv_core
     input  logic rst_n,
 
     imem_if.master imem,
-    dmem_if.master dmem
+    dmem_if.master dmem,
+    commit_if commit
 );
 
     // ---------------------------------
@@ -16,21 +17,9 @@ module riscv_core
     id_ex_t  id_ex;
     ex_mem_t ex_mem;
     mem_wb_t mem_wb;
-
-    // ---------------------------------
-    // Writeback Logic
-    // ---------------------------------
-
-    xlen_t     wb_data;
-    logic      wb_we;
-    reg_addr_t wb_rd;
-
-    assign wb_data = mem_wb.ctrl.mem_to_reg ?
-                     mem_wb.mem_data :
-                     mem_wb.alu_result;
-
-    assign wb_we = mem_wb.ctrl.reg_write;
-    assign wb_rd = mem_wb.rd;
+    
+    logic [31:0] ex_operand_a;
+    logic [31:0] ex_operand_b;
 
     // ---------------------------------
     // Hazard Detection
@@ -70,6 +59,16 @@ module riscv_core
     // ID Stage
     // ---------------------------------
 
+    logic      wb_we;
+    reg_addr_t wb_rd;
+    xlen_t     wb_data;
+  
+    assign wb_we   = mem_wb.ctrl.reg_write;
+    assign wb_rd   = mem_wb.rd;
+    assign wb_data = mem_wb.ctrl.mem_to_reg ?
+                     mem_wb.mem_data :
+                     mem_wb.alu_result;
+  
     id_stage u_id (
         .clk       (clk),
         .rst_n     (rst_n),
@@ -78,7 +77,7 @@ module riscv_core
         .wb_rd     (wb_rd),
         .wb_data   (wb_data),
         .stall     (stall_id),
-        .flush     (redirect_valid),
+        .flush     (redirect_valid || flush_ex),
         .id_ex_out (id_ex)
     );
 
@@ -93,10 +92,12 @@ module riscv_core
         .ex_mem_in      (ex_mem),
         .mem_wb_in      (mem_wb),
         .stall          (1'b0),
-        .flush          (flush_ex),
+        .flush          (1'b0),
         .ex_mem_out     (ex_mem),
         .redirect_valid (redirect_valid),
-        .redirect_pc    (redirect_pc)
+        .redirect_pc    (redirect_pc),
+        .operand_a_debug(ex_operand_a),
+        .operand_b_debug(ex_operand_b)
     );
 
     // ---------------------------------
@@ -108,9 +109,16 @@ module riscv_core
         .rst_n      (rst_n),
         .ex_mem_in  (ex_mem),
         .stall      (1'b0),
-        .flush      (redirect_valid),
+        .flush      (1'b0),
         .dmem       (dmem),
         .mem_wb_out (mem_wb)
     );
 
+  //for tb
+  assign commit.valid = (mem_wb.instr != 32'b0);
+  assign commit.pc    = mem_wb.pc;
+  assign commit.rd    = mem_wb.rd;
+  assign commit.data  = wb_data;
+  assign commit.instr = mem_wb.instr;
+  
 endmodule
