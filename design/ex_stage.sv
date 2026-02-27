@@ -13,7 +13,10 @@ module ex_stage
 
     output ex_mem_t ex_mem_out,
     output logic    redirect_valid,
-    output xlen_t   redirect_pc
+    output xlen_t   redirect_pc,
+  
+    output xlen_t operand_a_debug,
+    output xlen_t operand_b_debug
 );
 
     // -----------------------------
@@ -34,8 +37,16 @@ module ex_stage
 
     xlen_t operand_a, operand_b_raw, operand_b;
 
+    logic use_pc;
+  assign use_pc = (id_ex_in.ctrl.alu_op == ALU_ADD) &&	
+    			  (id_ex_in.instr[6:0] == OPCODE_AUIPC);
+    
     // Operand A selection
     always_comb begin
+      if(use_pc) begin
+        operand_a = id_ex_in.pc;
+      end
+      else begin
         unique case (forward_a)
             2'b10: operand_a = ex_mem_in.alu_result;
             2'b01: operand_a = mem_wb_in.ctrl.mem_to_reg ?
@@ -43,6 +54,7 @@ module ex_stage
                                mem_wb_in.alu_result;
             default: operand_a = id_ex_in.rs1_data;
         endcase
+      end
     end
 
     // Operand B forwarding
@@ -64,15 +76,24 @@ module ex_stage
     // -----------------------------
     // ALU
     // -----------------------------
+    xlen_t alu_result_raw;
     xlen_t alu_result;
 
     alu u_alu (
         .op_a    (operand_a),
         .op_b    (operand_b),
         .alu_op  (id_ex_in.ctrl.alu_op),
-        .result  (alu_result)
+      .result  (alu_result_raw)
     );
-
+  
+    always_comb begin
+      alu_result = alu_result_raw;
+      
+      if(id_ex_in.ctrl.jump) begin
+        alu_result = id_ex_in.pc + 32'd4;
+      end
+    end
+  
     // -----------------------------
     // Branch Logic
     // -----------------------------
@@ -87,10 +108,20 @@ module ex_stage
 
     assign redirect_valid =
         (id_ex_in.ctrl.branch && branch_taken) ||
-        id_ex_in.ctrl.jump;
+        (id_ex_in.ctrl.jump);
 
-    assign redirect_pc =
-        id_ex_in.pc + id_ex_in.imm;
+     always_comb begin
+       redirect_pc = '0;
+       
+       if(id_ex_in.ctrl.jump) begin
+         if (id_ex_in.instr[6:0] == OPCODE_JALR)
+         redirect_pc = (operand_a + id_ex_in.imm) & ~32'd1;
+       else
+         redirect_pc = id_ex_in.pc + id_ex_in.imm;
+       end else if(id_ex_in.ctrl.branch && branch_taken) begin
+         redirect_pc = id_ex_in.pc + id_ex_in.imm;
+       end
+     end
 
     // -----------------------------
     // EX/MEM Pipeline Register
@@ -101,11 +132,16 @@ module ex_stage
         else if (flush)
             ex_mem_out <= '0;
         else if (!stall) begin
+            ex_mem_out.pc         <= id_ex_in.pc;
             ex_mem_out.alu_result <= alu_result;
             ex_mem_out.rs2_data   <= operand_b_raw;
             ex_mem_out.rd         <= id_ex_in.rd;
             ex_mem_out.ctrl       <= id_ex_in.ctrl;
+            ex_mem_out.instr <= id_ex_in.instr;
         end
     end
-
+  
+  assign operand_a_debug = operand_a;
+  assign operand_b_debug = operand_b_raw;
+  
 endmodule
