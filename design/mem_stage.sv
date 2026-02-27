@@ -48,9 +48,11 @@ module mem_stage
         else if (flush)
             mem_wb_out <= '0;
         else if (!stall) begin
+            mem_wb_out.pc         <= ex_mem_in.pc;
             mem_wb_out.alu_result <= ex_mem_in.alu_result;
             mem_wb_out.mem_data   <= mem_data;
             mem_wb_out.rd         <= ex_mem_in.rd;
+            mem_wb_out.instr <= ex_mem_in.instr;
             mem_wb_out.ctrl       <= ex_mem_in.ctrl;
         end
     end
