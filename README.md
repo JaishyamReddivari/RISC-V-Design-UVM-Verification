@@ -247,15 +247,15 @@ Notable fixes: Riviera-PRO `!binsof` compound expressions mishandled → replace
 
 ## Regression
 
-### `regress.py` — Multi-seed regression runner
+### `regression.py` — Multi-seed regression runner
 > **Note:** The regression script was written but **not executed** in this project due to lack of access to a local simulator license. All simulation results (683 passed, 96% coverage) were obtained by running individual seeds manually through Riviera-PRO via EDA Playground / cloud instances. The script is included to demonstrate regression methodology and is ready to run in any environment with a UVM-capable simulator.
 
 ```bash
-python3 regress.py                        # 10 random seeds
-python3 regress.py -n 100                 # 100 random seeds
-python3 regress.py -s 42 100 777          # specific seeds
-python3 regress.py -t riscv_rtype_test    # per-type test
-python3 regress.py --clean -n 50          # clean + 50 seeds
+python3 regression.py                        # 10 random seeds
+python3 regression.py -n 100                 # 100 random seeds
+python3 regression.py -s 42 100 777          # specific seeds
+python3 regression.py -t riscv_rtype_test    # per-type test
+python3 regression.py --clean -n 50          # clean + 50 seeds
 ```
 
 **Features:**
@@ -318,7 +318,7 @@ python3 regress.py --clean -n 50          # clean + 50 seeds
 │   └── riscv_tb.sv               # Top-level testbench module
 │
 ├── scripts/
-│   └── regress.py                # Multi-seed regression runner
+│   └── regression.py             # Multi-seed regression runner
 │
 ├── docs/
 │   ├── waveform.png              # Simulation waveform capture
@@ -363,9 +363,9 @@ exit
 ### Multi-Seed Regression
 
 ```bash
-python3 scripts/regress.py -n 100          # 100 random seeds
-python3 scripts/regress.py -s 42 100 777   # specific seeds
-python3 scripts/regress.py --clean -n 50   # fresh run
+python3 scripts/regression.py -n 100          # 100 random seeds
+python3 scripts/regression.py -s 42 100 777   # specific seeds
+python3 scripts/regression.py --clean -n 50   # fresh run
 ```
 
 ### Coverage Collection
@@ -402,7 +402,7 @@ Counting committed instructions is fragile — stores and branches don't always 
 | Word-only memory (LW/SW) | Add LB/LH/LBU/LHU/SB/SH with byte-enable logic and scoreboard updates |
 | No CSR support | Add M-mode CSRs (mstatus, mepc, mcause) with UVM RAL model |
 | No interrupts/exceptions | Add trap handling, illegal instruction detection |
-| Single-seed coverage report shown | Regression merges coverage across seeds via `regress.py` |
+| Single-seed coverage report shown | Regression merges coverage across seeds via `regression.py` |
 | Backward branch not covered | Add directed sequence with bounded negative immediate |
 | No formal verification | Add SymbiYosys or JasperGold proofs for forwarding/hazard unit correctness |
 
