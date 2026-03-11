@@ -87,7 +87,7 @@ These bugs were found during the first week of testbench development, before the
 
 ## UVM Testbench Bugs
 
-### T2 — IMEM Driver NBA Timing (Primary Root Cause)
+### T1 — IMEM Driver NBA Timing (Primary Root Cause)
 
 | Field | Detail |
 |---|---|
@@ -113,7 +113,7 @@ vif.rdata = instr_mem[vif.addr >> 2];   // available this cycle
 
 ---
 
-### T3 — DMEM Driver Same Timing Issue
+### T2 — DMEM Driver Same Timing Issue
 
 | Field | Detail |
 |---|---|
@@ -125,7 +125,7 @@ vif.rdata = instr_mem[vif.addr >> 2];   // available this cycle
 
 ---
 
-### T4 — Scoreboard Counter Overflow
+### T3 — Scoreboard Counter Overflow
 
 | Field | Detail |
 |---|---|
@@ -137,7 +137,7 @@ vif.rdata = instr_mem[vif.addr >> 2];   // available this cycle
 
 ---
 
-### T5 — Scoreboard Counters Reset Between Phases
+### T4 — Scoreboard Counters Reset Between Phases
 
 | Field | Detail |
 |---|---|
@@ -149,7 +149,7 @@ vif.rdata = instr_mem[vif.addr >> 2];   // available this cycle
 
 ---
 
-### T6 — JALR Scoreboard rd==rs1 Ordering Bug
+### T5 — JALR Scoreboard rd==rs1 Ordering Bug
 
 | Field | Detail |
 |---|---|
@@ -169,7 +169,7 @@ check_and_write(rd, result, ct.data); // now safe to update ref_reg[rd]
 
 ---
 
-### T7 — Branch Constraint Tautology
+### T6 — Branch Constraint Tautology
 
 | Field | Detail |
 |---|---|
@@ -181,7 +181,7 @@ check_and_write(rd, result, ct.data); // now safe to update ref_reg[rd]
 
 ---
 
-### T8 — JALR post_randomize Not Always Called
+### T7 — JALR post_randomize Not Always Called
 
 | Field | Detail |
 |---|---|
@@ -193,7 +193,7 @@ check_and_write(rd, result, ct.data); // now safe to update ref_reg[rd]
 
 ---
 
-### T9 — JALR Warmup Offset Bug
+### T8 — JALR Warmup Offset Bug
 
 | Field | Detail |
 |---|---|
@@ -205,7 +205,7 @@ check_and_write(rd, result, ct.data); // now safe to update ref_reg[rd]
 
 ---
 
-### T10 — JALR Fallback Self-Loop
+### T9 — JALR Fallback Self-Loop
 
 | Field | Detail |
 |---|---|
@@ -217,7 +217,7 @@ check_and_write(rd, result, ct.data); // now safe to update ref_reg[rd]
 
 ---
 
-### T11 — Load-Use Stress Wrong Transaction
+### T10 — Load-Use Stress Wrong Transaction
 
 | Field | Detail |
 |---|---|
@@ -296,7 +296,7 @@ These were found and fixed iteratively during assertion development. Documented 
 
 These are not bugs in the traditional sense but represent iterative refinement of covergroups to accurately measure verification completeness.
 
-### C14 — cov_opcode Cross: Illegal funct3 Combinations
+### C1 — cov_opcode Cross: Illegal funct3 Combinations
 
 | Field | Detail |
 |---|---|
@@ -304,63 +304,63 @@ These are not bugs in the traditional sense but represent iterative refinement o
 | **Tool Issue** | Riviera-PRO mishandled compound `!binsof` expressions, causing valid bins to be accidentally excluded. |
 | **Fix** | Replaced compound `!binsof` with individual per-value `ignore_bins` for each illegal combination (e.g., `ignore_bins load_f0 = binsof(cp_opcode) intersect {7'b0000011} && binsof(cp_funct3) intersect {3'b000};`). |
 
-### C15 — cov_decode Cross: Valid SUB/SRA Swallowed
+### C2 — cov_decode Cross: Valid SUB/SRA Swallowed
 
 | Field | Detail |
 |---|---|
 | **Problem** | `ignore_bins` intended to exclude invalid funct3×funct7 combinations (e.g., SLL with funct7=0100000) accidentally excluded valid SUB and SRA. |
 | **Fix** | Individual `ignore_bins` per illegal pair: `sll_alt`, `slt_alt`, `sltu_alt`, `xor_alt`, `or_alt`, `and_alt`. |
 
-### C16 — cov_hazard Cross: Structurally Impossible Bins
+### C3 — cov_hazard Cross: Structurally Impossible Bins
 
 | Field | Detail |
 |---|---|
 | **Problem** | In this design, `stall` and `flush_ex` are both driven by the same `load_use_hazard` signal. Therefore `<stall, no_flush>` and `<no_stall, flush>` can never occur. |
 | **Fix** | Added `ignore_bins` for both impossible combinations. |
 
-### C17 — cov_imm: small_neg Unreachable
+### C4 — cov_imm: small_neg Unreachable
 
 | Field | Detail |
 |---|---|
 | **Problem** | The `bit signed` type in the transaction prevented the constraint solver from generating values in [-16:-1] for certain instruction types. |
 | **Fix** | Changed `small_neg` to `ignore_bins`. |
 
-### C18 — cov_forward Cross: Rare Dual-Stage Forwarding
+### C5 — cov_forward Cross: Rare Dual-Stage Forwarding
 
 | Field | Detail |
 |---|---|
 | **Problem** | `<ex, mem>` and `<mem, ex>` bins require simultaneous forwarding from two different pipeline stages on operand A and B respectively. This requires three consecutive instructions with specific register dependencies — extremely rare under random stimulus. |
 | **Fix** | Added `ignore_bins` for both. These could theoretically be hit with a directed sequence but are not worth the effort for the coverage model's goals. |
 
-### C19 — cov_hazard_source: Load Forward via Operand A Unreachable
+### C6 — cov_hazard_source: Load Forward via Operand A Unreachable
 
 | Field | Detail |
 |---|---|
 | **Problem** | A load in the forwarding source for operand A requires a load instruction in the EX/MEM register whose `rd` matches the current instruction's `rs1`. However, loads in EX/MEM trigger a stall (not a forward), so the forward path is never used for loads on operand A. |
 | **Fix** | Removed `load` bin from `cp_fwd_a_opcode`. |
 
-### C20 — cov_corner: redirect_after_stall Impossible
+### C7 — cov_corner: redirect_after_stall Impossible
 
 | Field | Detail |
 |---|---|
 | **Problem** | A stall requires a load in EX. A redirect requires a branch/jump in EX. The same instruction cannot be both a load and a branch/jump. Therefore `redirect_valid && stall_if` can never be simultaneously true. |
 | **Fix** | Changed to `ignore_bins impossible`. |
 
-### C21 — cov_instr_sequence: Dual Monitor Corruption
+### C8 — cov_instr_sequence: Dual Monitor Corruption
 
 | Field | Detail |
 |---|---|
 | **Problem** | Both the commit monitor and exec monitor fed the same `write()` function in coverage. The exec monitor updates arrived interleaved with commit updates, corrupting the `prev_opcode` / `prev_rd` tracking. Only same→same instruction pairs hit in the cross. |
 | **Fix** | Added `if(ct.valid)` guard so that only commit monitor transactions (which set `ct.valid = 1`) update the previous-instruction tracking state. |
 
-### C22 — cov_memory: Address Range Unreachable
+### C9 — cov_memory: Address Range Unreachable
 
 | Field | Detail |
 |---|---|
 | **Problem** | `high_addr` was defined as `[2048:4092]`, but load/store addresses are computed as `rs1 + sign_extended_12bit_imm`. With `rs1 = 0` (constrained for loads/stores), the maximum address is 2047. The `high_addr` bin was unreachable. |
 | **Fix** | Changed ranges to `[0:255]`, `[256:1023]`, `[1024:2047]` to match achievable address space. |
 
-### C23 — cov_alu_result: Over-Granular and Unreachable Bins
+### C10 — cov_alu_result: Over-Granular and Unreachable Bins
 
 | Field | Detail |
 |---|---|
